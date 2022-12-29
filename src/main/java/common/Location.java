@@ -3,19 +3,23 @@ package common;
 import java.io.Serializable;
 
 public class Location implements Serializable {
-    private long idLocation;
+    private Long idLocation;
     private String name;
+
+    public Location(){
+
+    }
 
     public Location(long idLocation, String name) {
         this.idLocation = idLocation;
         this.name = name;
     }
 
-    public long getIdLocation() {
+    public Long getIdLocation() {
         return idLocation;
     }
 
-    public void setIdLocation(long idLocation) {
+    public void setIdLocation(Long idLocation) {
         this.idLocation = idLocation;
     }
 

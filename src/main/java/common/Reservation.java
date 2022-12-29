@@ -6,16 +6,20 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class Reservation implements Serializable {
-    private long idReservation;
+    private Long idReservation;
     private String name;
     private String cnp;
-    private final LocalDate dateOfReservation; // the date the reservation was made
-    private long idLocation;
-    private long idTreatment;
+    private LocalDate dateOfReservation; // the date the reservation was made
+    private Long idLocation;
+    private Long idTreatment;
     private LocalDate dateTreatment; // treatment appointment date
     private LocalTime timeTreatment; // treatment appointment hour
 
-    public Reservation(long idReservation, String name, String cnp, long idLocation, long idTreatment, LocalDate dateTreatment, LocalTime timeTreatment) {
+    public Reservation(){
+
+    }
+
+    public Reservation(Long idReservation, String name, String cnp, Long idLocation, Long idTreatment, LocalDate dateTreatment, LocalTime timeTreatment) {
         this.idReservation = idReservation;
         this.name = name;
         this.cnp = cnp;
@@ -26,11 +30,11 @@ public class Reservation implements Serializable {
         this.timeTreatment = timeTreatment;
     }
 
-    public long getIdReservation() {
+    public Long getIdReservation() {
         return idReservation;
     }
 
-    public void setIdReservation(long idReservation) {
+    public void setIdReservation(Long idReservation) {
         this.idReservation = idReservation;
     }
 
@@ -54,19 +58,19 @@ public class Reservation implements Serializable {
         return dateOfReservation;
     }
 
-    public long getIdLocation() {
+    public Long getIdLocation() {
         return idLocation;
     }
 
-    public void setIdLocation(long idLocation) {
+    public void setIdLocation(Long idLocation) {
         this.idLocation = idLocation;
     }
 
-    public long getIdTreatment() {
+    public Long getIdTreatment() {
         return idTreatment;
     }
 
-    public void setIdTreatment(long idTreatment) {
+    public void setIdTreatment(Long idTreatment) {
         this.idTreatment = idTreatment;
     }
 

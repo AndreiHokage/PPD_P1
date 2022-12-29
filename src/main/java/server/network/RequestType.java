@@ -1,0 +1,5 @@
+package server.network;
+
+public enum RequestType {
+    MAKE_RESERVATION, MAKE_PAYMENT, CANCEL_RESERVATION, GET_ALL_TREATMENTS, GET_ALL_LOCATIONS
+}

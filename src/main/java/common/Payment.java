@@ -4,13 +4,17 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 public class Payment implements Serializable {
-    private long idPayment;
+    private Long idPayment;
     private LocalDate dateOfPayment;
     private String cnp;
     private double amountPayed;
     private long idReservation;
 
-    public Payment(long idPayment, LocalDate dateOfPayment, String cnp, double amountPayed, long idReservation) {
+    public Payment(){
+
+    }
+
+    public Payment(Long idPayment, LocalDate dateOfPayment, String cnp, double amountPayed, long idReservation) {
         this.idPayment = idPayment;
         this.dateOfPayment = dateOfPayment;
         this.cnp = cnp;
@@ -19,11 +23,11 @@ public class Payment implements Serializable {
     }
 
 
-    public long getIdPayment() {
+    public Long getIdPayment() {
         return idPayment;
     }
 
-    public void setIdPayment(long idPayment) {
+    public void setIdPayment(Long idPayment) {
         this.idPayment = idPayment;
     }
 

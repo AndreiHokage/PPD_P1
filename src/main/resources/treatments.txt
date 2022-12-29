@@ -1,0 +1,5 @@
+{"idTreatment":0,"price":50.0,"duration":120,"maxCapacity":[3,3,6,9,12]}
+{"idTreatment":1,"price":20.0,"duration":20,"maxCapacity":[1,1,2,3,4]}
+{"idTreatment":2,"price":40.0,"duration":30,"maxCapacity":[1,1,2,3,4]}
+{"idTreatment":3,"price":100.0,"duration":60,"maxCapacity":[2,2,4,6,8]}
+{"idTreatment":4,"price":30.0,"duration":30,"maxCapacity":[1,1,2,3,4]}

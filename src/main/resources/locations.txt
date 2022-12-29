@@ -1,0 +1,5 @@
+{"idLocation":0,"name":"Resort_0"}
+{"idLocation":1,"name":"Resort_1"}
+{"idLocation":2,"name":"Resort_2"}
+{"idLocation":3,"name":"Resort_3"}
+{"idLocation":4,"name":"Resort_4"}

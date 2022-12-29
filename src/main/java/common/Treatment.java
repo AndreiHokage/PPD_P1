@@ -1,26 +1,31 @@
 package common;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 public class Treatment implements Serializable {
-    private long idTreatment;
+    private Long idTreatment;
     private double price;
     private int duration; // the number of minutes
-    private final int maxCapacity;
+    private List<Integer> maxCapacity;
 
-    public Treatment(long idTreatment, double price, int duration, int maxCapacity) {
+    public Treatment(){
+
+    }
+
+    public Treatment(Long idTreatment, double price, int duration, List<Integer> maxCapacity) {
         this.idTreatment = idTreatment;
         this.price = price;
         this.duration = duration;
         this.maxCapacity = maxCapacity;
     }
 
-    public long getIdTreatment() {
+    public Long getIdTreatment() {
         return idTreatment;
     }
 
-    public void setIdTreatment(long idTreatment) {
+    public void setIdTreatment(Long idTreatment) {
         this.idTreatment = idTreatment;
     }
 
@@ -40,7 +45,7 @@ public class Treatment implements Serializable {
         this.duration = duration;
     }
 
-    public int getMaxCapacity() {
+    public List<Integer> getMaxCapacity() {
         return maxCapacity;
     }
 
