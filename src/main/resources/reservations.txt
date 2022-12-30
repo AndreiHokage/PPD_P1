@@ -1,2 +1,0 @@
-{"idReservation":1,"name":"Andrei","cnp":"234","dateOfReservation":[2022,12,29],"idLocation":1,"idTreatment":3,"dateTreatment":[2022,12,29],"timeTreatment":[21,9,15,888153600]}
-{"idReservation":2,"name":"Andrei","cnp":"234","dateOfReservation":[2022,12,29],"idLocation":1,"idTreatment":3,"dateTreatment":[2022,12,29],"timeTreatment":[21,9,19,906777900]}

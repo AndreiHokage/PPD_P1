@@ -8,14 +8,14 @@ import common.Treatment;
 import java.util.Collection;
 
 public interface IHealthCaresServices {
-    Boolean makeReservation(Reservation reservation);
+    Boolean makeReservation(Reservation reservation) throws Exception;
 
-    void makePayment(Payment payment);
+    void makePayment(Payment payment) throws Exception;
 
-    void cancelReservation(Reservation reservation);
+    void cancelReservation(Reservation reservation) throws Exception;
 
-    Collection<Treatment> getAllTreatments();
+    Collection<Treatment> getAllTreatments() throws Exception;
 
-    Collection<Location> getAllLocations();
+    Collection<Location> getAllLocations() throws Exception;
 
 }

@@ -39,9 +39,9 @@ public class Main {
         SupraService supraService = new SupraService(reservationService, paymentService, locationService, treatmentService);
 
         ConcurrentServer concurrentServer = new ConcurrentServer(55555, supraService);
-        supraService.makeReservation(new Reservation(null, "Andrei", "234",
-                1L, 3L, LocalDate.now(), LocalTime.now()));
-        //concurrentServer.start();
+//        supraService.makeReservation(new Reservation(null, "Andrei", "234",
+//                1L, 3L, LocalDate.now(), LocalTime.now()));
+        concurrentServer.start();
 
     }
 }

@@ -119,4 +119,7 @@ public class Worker implements Runnable{
         return new Response.Builder().type(ResponseType.A_GET_ALL_LOCATIONS).data(locations).build();
     }
 
+    private void handleSTOP(Request request){
+        connected = false;
+    }
 }
