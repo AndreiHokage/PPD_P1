@@ -14,14 +14,22 @@ import java.util.Optional;
 public class ReservationFileRepository implements ReservationRepository{
 
     private String filePath;
+    private Long MAX_ID = 0L;
 
     public ReservationFileRepository(String filePath){
         this.filePath = filePath;
+        Optional<Long> newAssigmentIdOptional = getAll().stream()
+                .map(x -> x.getIdReservation())
+                .max(Long::compare);
+        MAX_ID = 0L;
+        if(newAssigmentIdOptional.isPresent())
+            MAX_ID = newAssigmentIdOptional.get();
     }
 
     private void writeToFile(List<Reservation> reservations){
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, false))) {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
             for (Reservation reservation : reservations) {
                 String json = mapper.writeValueAsString(reservation);
                 fileWriter.write(json + "\n");
@@ -29,21 +37,18 @@ public class ReservationFileRepository implements ReservationRepository{
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("FINALALALALALAL");
     }
 
     @Override
     public void add(Reservation elem) {
-        Optional<Long> newAssigmentIdOptional = getAll().stream()
-                .map(x -> x.getIdReservation())
-                .max(Long::compare);
-        Long newAssigmentId = 1L;
-        if(newAssigmentIdOptional.isPresent())
-            newAssigmentId = newAssigmentIdOptional.get() + 1;
-        elem.setIdReservation(newAssigmentId);
+        MAX_ID = MAX_ID + 1;
+        elem.setIdReservation(MAX_ID);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, true))) {
             String json = mapper.writeValueAsString(elem);
+            System.out.println("_-------------ADD RESERVATOn " + json);
             fileWriter.write(json + "\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -57,6 +62,7 @@ public class ReservationFileRepository implements ReservationRepository{
         List<Reservation> reservationsWithoutElem = getAll().stream()
                 .filter(el -> !el.getIdReservation().equals(elem.getIdReservation()))
                 .toList();
+        System.out.println("GASIT::::::::::::::::::::::::::::::::: " + elem);
         writeToFile(reservationsWithoutElem);
     }
 

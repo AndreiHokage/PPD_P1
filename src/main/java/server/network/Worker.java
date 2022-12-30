@@ -1,9 +1,6 @@
 package server.network;
 
-import common.Location;
-import common.Payment;
-import common.Reservation;
-import common.Treatment;
+import common.*;
 import server.service.SupraService;
 
 import java.io.*;
@@ -95,18 +92,20 @@ public class Worker implements Runnable{
 
     private Response handleMAKE_RESERVATION(Request request){
         Reservation reservation = (Reservation) request.data();
-        Boolean made = supraService.makeReservation(reservation);
+        DTOReservation made = supraService.makeReservation(reservation);
         return new Response.Builder().type(ResponseType.A_MAKE_RESERVATION).data(made).build();
     }
 
-    private void handleMAKE_PAYMENT(Request request){
+    private Response handleMAKE_PAYMENT(Request request){
         Payment payment = (Payment) request.data();
-        supraService.makePayment(payment);
+        Payment finalPayment = supraService.makePayment(payment);
+        return new Response.Builder().type(ResponseType.A_MAKE_PAYMENT).data(finalPayment).build();
     }
 
-    private void handleCANCEL_RESERVATION(Request request){
+    private Response handleCANCEL_RESERVATION(Request request){
         Reservation reservation = (Reservation) request.data();
         supraService.cancelReservation(reservation);
+        return new Response.Builder().type(ResponseType.A_CANCEL_RESERVATION).build();
     }
 
     private Response handleGET_ALL_TREATMENTS(Request request){
@@ -119,7 +118,8 @@ public class Worker implements Runnable{
         return new Response.Builder().type(ResponseType.A_GET_ALL_LOCATIONS).data(locations).build();
     }
 
-    private void handleSTOP(Request request){
+    private Response handleSTOP(Request request){
         connected = false;
+        return new Response.Builder().type(ResponseType.OK).build();
     }
 }

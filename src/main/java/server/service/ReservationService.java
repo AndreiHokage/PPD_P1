@@ -1,5 +1,6 @@
 package server.service;
 
+import common.DTOReservation;
 import common.Payment;
 import common.Reservation;
 import common.Treatment;
@@ -25,7 +26,7 @@ public class ReservationService {
         this.paymentRepository = paymentRepository;
     }
 
-    public Boolean makeReservation(Reservation reservation){
+    public DTOReservation makeReservation(Reservation reservation){
         Treatment treatment = treatmentRepository.findByID(reservation.getIdTreatment());
         Integer duration = treatment.getDuration();
         Integer capacity = treatment.getMaxCapacity().get(reservation.getIdLocation().intValue());
@@ -59,7 +60,6 @@ public class ReservationService {
         int count = 0;
         SortedSet<LocalTime> setEndTimes = new TreeSet<>();
         for(Reservation element: sortedList){
-            System.out.println("Balani " + capacity + "                      " + element);
             count = count + 1;
             LocalTime currentTime = element.getTimeTreatment();
             setEndTimes.add(currentTime.plusMinutes(duration));
@@ -70,17 +70,21 @@ public class ReservationService {
             tailSet.clear();
 
             if(count > capacity.intValue())
-                return false;
+                return new DTOReservation(false, reservation);
         }
 
         reservationRepository.add(reservation);
-        return true;
+        return new DTOReservation(true, reservation);
     }
 
     public void cancelReservation(Reservation reservation){
-        Treatment treatment = treatmentRepository.findByID(reservation.getIdReservation());
+        Treatment treatment = treatmentRepository.findByID(reservation.getIdTreatment());
         reservationRepository.delete(reservation);
         paymentRepository.add(new Payment(null, LocalDate.now(), reservation.getCnp(),
                 -treatment.getPrice(), reservation.getIdReservation()));
+    }
+
+    public Collection<Reservation> getAllReservations(){
+        return reservationRepository.getAll();
     }
 }

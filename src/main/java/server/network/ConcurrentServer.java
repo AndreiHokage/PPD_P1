@@ -32,6 +32,7 @@ public class ConcurrentServer {
     }
 
     private void createWorker(Socket client, SupraService supraService){
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         Runnable worker = new Worker(client, supraService);
         Thread tw = new Thread(worker);
         tw.start();

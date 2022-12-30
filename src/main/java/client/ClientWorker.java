@@ -2,10 +2,7 @@ package client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import common.Location;
-import common.Payment;
-import common.Reservation;
-import common.Treatment;
+import common.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,8 +14,6 @@ public class ClientWorker extends Thread {
 
     private Services services;
     private Random rand = new Random();
-    private long paymentIdNumber = 0;
-    private long reservationIdNumber = 0;
 
     public ClientWorker(Services services) {
         this.services = services;
@@ -31,8 +26,9 @@ public class ClientWorker extends Thread {
                 System.out.println("\nNEW RESERVATION\n");
 
                 Reservation reservation = createRandomReservation();
-                Boolean response = services.makeReservation(reservation);
-                if (response) {
+                DTOReservation response = services.makeReservation(reservation);
+                reservation = response.getReservation();
+                if (response.getWasAccepted()) {
                     System.out.println("Successful reservation");
 
                     int cancelReservation = Math.abs(rand.nextInt()) % 2;
@@ -71,9 +67,8 @@ public class ClientWorker extends Thread {
             if (t != null)
                 cost = t.getPrice();
 
-            paymentIdNumber++;
             return new Payment(
-                    paymentIdNumber,
+                    null,
                     LocalDate.now(),
                     reservation.getCnp(),
                     cost,
@@ -91,8 +86,7 @@ public class ClientWorker extends Thread {
             List<Treatment> treatments = (List<Treatment>) services.getAllTreatments();
             Treatment treatment = treatments.get(Math.abs(rand.nextInt()) % treatments.size());
 
-            reservationIdNumber++;
-            return new Reservation(reservationIdNumber,
+            return new Reservation(null,
                     currentThread().getName(),
                     String.valueOf(currentThread().getId()),
                     location.getIdLocation(),

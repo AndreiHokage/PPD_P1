@@ -15,9 +15,16 @@ import java.util.Optional;
 public class PaymentFileRepository implements PaymentRepository{
 
     private String filePath;
+    private Long MAX_ID = 0L;
 
     public PaymentFileRepository(String filePath){
         this.filePath = filePath;
+        Optional<Long> newAssigmentIdOptional = getAll().stream()
+                .map(x -> x.getIdPayment())
+                .max(Long::compare);
+        Long MAX_ID = 0L;
+        if(newAssigmentIdOptional.isPresent())
+            MAX_ID = newAssigmentIdOptional.get();
     }
 
     private void writeToFile(List<Payment> reservations){
@@ -35,17 +42,13 @@ public class PaymentFileRepository implements PaymentRepository{
 
     @Override
     public void add(Payment elem) {
-        Optional<Long> newAssigmentIdOptional = getAll().stream()
-                .map(x -> x.getIdPayment())
-                .max(Long::compare);
-        Long newAssigmentId = 1L;
-        if(newAssigmentIdOptional.isPresent())
-            newAssigmentId = newAssigmentIdOptional.get() + 1;
-        elem.setIdPayment(newAssigmentId);
+        MAX_ID = MAX_ID + 1;
+        elem.setIdPayment(MAX_ID);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, true))) {
             String json = mapper.writeValueAsString(elem);
+            System.out.println("_-------------ADD PAYMENT " + json);
             fileWriter.write(json + "\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -83,6 +86,7 @@ public class PaymentFileRepository implements PaymentRepository{
         try(BufferedReader br = new BufferedReader(new FileReader(filePath))){
             String line;
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
             while((line = br.readLine()) != null){
                 Payment payment = mapper.readValue(line, Payment.class);
                 payments.add(payment);

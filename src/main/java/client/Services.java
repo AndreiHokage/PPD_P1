@@ -1,9 +1,6 @@
 package client;
 
-import common.Location;
-import common.Payment;
-import common.Reservation;
-import common.Treatment;
+import common.*;
 import server.network.Request;
 import server.network.RequestType;
 import server.network.Response;
@@ -39,7 +36,7 @@ public class Services implements IHealthCaresServices {
     }
 
     @Override
-    public Boolean makeReservation(Reservation reservation) throws Exception {
+    public DTOReservation makeReservation(Reservation reservation) throws Exception {
         Request request = new Request.Builder().type(RequestType.MAKE_RESERVATION).data(reservation).build();
         sendRequest(request);
         Response response = readResponse();
@@ -49,15 +46,24 @@ public class Services implements IHealthCaresServices {
             throw new Exception("Something went wrong");
         }
 
-        Boolean result = (Boolean) response.data();
+        DTOReservation result = (DTOReservation) response.data();
         return result;
 
     }
 
     @Override
-    public void makePayment(Payment payment) throws Exception {
+    public Payment makePayment(Payment payment) throws Exception {
         Request request = new Request.Builder().type(RequestType.MAKE_PAYMENT).data(payment).build();
         sendRequest(request);
+        Response response = readResponse();
+
+        if (response.type() != ResponseType.A_MAKE_PAYMENT) {
+            closeConnection();
+            throw new Exception("Something went wrong");
+        }
+
+        Payment result = (Payment) response.data();
+        return result;
     }
 
     @Override
@@ -65,7 +71,6 @@ public class Services implements IHealthCaresServices {
         Request request = new Request.Builder().type(RequestType.CANCEL_RESERVATION).data(reservation).build();
         sendRequest(request);
         Response response = readResponse();
-
         if (response.type() != ResponseType.A_CANCEL_RESERVATION) {
             closeConnection();
             throw new Exception("Something went wrong");
