@@ -65,7 +65,7 @@ public class TreatmentFileRepository implements TreatmentRepository{
     }
 
     @Override
-    public Treatment findByID(Long id) {
+    public synchronized Treatment findByID(Long id) {
         return getAll().stream().
                 filter(el -> el.getIdTreatment().equals(id)).
                 toList().
@@ -78,7 +78,7 @@ public class TreatmentFileRepository implements TreatmentRepository{
     }
 
     @Override
-    public Collection<Treatment> getAll() {
+    public synchronized Collection<Treatment> getAll() {
         Collection<Treatment> treatments = new ArrayList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(pathFile))){
             String line;

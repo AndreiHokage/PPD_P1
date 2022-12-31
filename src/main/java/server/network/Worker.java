@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.Collection;
+import java.util.concurrent.*;
 
 public class Worker implements Runnable{
 
@@ -17,10 +18,12 @@ public class Worker implements Runnable{
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private volatile boolean connected;
+    private ExecutorService executorService;
 
-    public Worker(Socket client, SupraService supraService) {
+    public Worker(Socket client, SupraService supraService, ExecutorService executorService) {
         this.client = client;
         this.supraService = supraService;
+        this.executorService = executorService;
 
         try {
             output=new ObjectOutputStream(client.getOutputStream());
@@ -37,13 +40,17 @@ public class Worker implements Runnable{
         while(connected){
             try{
                 Request request = (Request) input.readObject();
-                Response response = handleRequest(request);
+                Future<Response> response = handleRequest(request);
                 if(response != null){
-                    sendResponse(response);
+                    sendResponse(response.get());
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -62,20 +69,34 @@ public class Worker implements Runnable{
         }
     }
 
-    private Response handleRequest(Request request){
-        Response response = null;
+    private class InsideWorker implements Callable{
+
+        private Worker instance;
+        private Request request;
+        private Method method;
+
+        public InsideWorker(Worker instance, Request request, Method method) {
+            this.instance = instance;
+            this.request = request;
+            this.method = method;
+        }
+
+        @Override
+        public Response call() throws Exception {
+            return (Response) method.invoke(instance, request);
+        }
+    }
+
+    private Future<Response> handleRequest(Request request){
+        Future<Response> response = null;
         String handlerName = "handle" + request.type();
         System.out.println("HandlerName " + handlerName);
 
         try {
             Method method = this.getClass().getDeclaredMethod(handlerName, Request.class);
-            response = (Response) method.invoke(this, request);
+            response = executorService.submit(new InsideWorker(this, request, method));
             System.out.println("Method " + handlerName + " invoked");
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
@@ -102,9 +123,18 @@ public class Worker implements Runnable{
         return new Response.Builder().type(ResponseType.A_MAKE_PAYMENT).data(finalPayment).build();
     }
 
-    private Response handleCANCEL_RESERVATION(Request request){
+    private Response handleCANCEL_RESERVATION(Request request) throws InterruptedException {
+//        ConcurrentServer.reentrantLock.lock();
+//        while(ConcurrentServer.canCheckSystem){
+//            ConcurrentServer.checkSystemCondition.await();
+//        }
+
         Reservation reservation = (Reservation) request.data();
         supraService.cancelReservation(reservation);
+
+//        ConcurrentServer.canCheckSystem = Boolean.TRUE;
+//        ConcurrentServer.checkSystemCondition.signalAll();
+//        ConcurrentServer.reentrantLock.unlock();
         return new Response.Builder().type(ResponseType.A_CANCEL_RESERVATION).build();
     }
 

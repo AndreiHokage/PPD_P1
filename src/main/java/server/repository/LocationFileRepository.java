@@ -56,7 +56,7 @@ public class LocationFileRepository implements LocationRepository {
     }
 
     @Override
-    public Location findByID(Long id) {
+    public synchronized Location findByID(Long id) {
         return getAll().stream().
                 filter(el -> el.getIdLocation().equals(id)).
                 toList().
@@ -69,7 +69,7 @@ public class LocationFileRepository implements LocationRepository {
     }
 
     @Override
-    public Collection<Location> getAll() {
+    public synchronized Collection<Location> getAll() {
         Collection<Location> locations = new ArrayList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(filePath))){
             String line;

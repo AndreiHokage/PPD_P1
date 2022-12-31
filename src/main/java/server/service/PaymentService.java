@@ -21,4 +21,8 @@ public class PaymentService {
     public Collection<Payment> getALlPayments(){
         return paymentRepository.getAll();
     }
+
+    public Payment findByID(Long ID){
+        return paymentRepository.findByID(ID);
+    }
 }

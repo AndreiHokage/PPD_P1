@@ -1,6 +1,7 @@
 package common;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Location implements Serializable {
     private Long idLocation;
@@ -29,6 +30,19 @@ public class Location implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Location location = (Location) o;
+        return Objects.equals(idLocation, location.idLocation) && Objects.equals(name, location.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idLocation, name);
     }
 
     @Override

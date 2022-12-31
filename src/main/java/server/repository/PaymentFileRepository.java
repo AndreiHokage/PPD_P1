@@ -27,7 +27,7 @@ public class PaymentFileRepository implements PaymentRepository{
             MAX_ID = newAssigmentIdOptional.get();
     }
 
-    private void writeToFile(List<Payment> reservations){
+    private synchronized void writeToFile(List<Payment> reservations){
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, false))) {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
@@ -41,14 +41,13 @@ public class PaymentFileRepository implements PaymentRepository{
     }
 
     @Override
-    public void add(Payment elem) {
+    public synchronized void add(Payment elem) {
         MAX_ID = MAX_ID + 1;
         elem.setIdPayment(MAX_ID);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, true))) {
             String json = mapper.writeValueAsString(elem);
-            System.out.println("_-------------ADD PAYMENT " + json);
             fileWriter.write(json + "\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -68,7 +67,7 @@ public class PaymentFileRepository implements PaymentRepository{
     }
 
     @Override
-    public Payment findByID(Long id) {
+    public synchronized Payment findByID(Long id) {
         return getAll().stream().
                 filter(el -> el.getIdPayment().equals(id)).
                 toList().
@@ -81,7 +80,7 @@ public class PaymentFileRepository implements PaymentRepository{
     }
 
     @Override
-    public Collection<Payment> getAll() {
+    public synchronized Collection<Payment> getAll() {
         Collection<Payment> payments = new ArrayList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(filePath))){
             String line;

@@ -26,7 +26,7 @@ public class ReservationFileRepository implements ReservationRepository{
             MAX_ID = newAssigmentIdOptional.get();
     }
 
-    private void writeToFile(List<Reservation> reservations){
+    private synchronized void writeToFile(List<Reservation> reservations){
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, false))) {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
@@ -37,18 +37,16 @@ public class ReservationFileRepository implements ReservationRepository{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("FINALALALALALAL");
     }
 
     @Override
-    public void add(Reservation elem) {
+    public synchronized void add(Reservation elem) {
         MAX_ID = MAX_ID + 1;
         elem.setIdReservation(MAX_ID);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePath, true))) {
             String json = mapper.writeValueAsString(elem);
-            System.out.println("_-------------ADD RESERVATOn " + json);
             fileWriter.write(json + "\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -58,11 +56,10 @@ public class ReservationFileRepository implements ReservationRepository{
     }
 
     @Override
-    public void delete(Reservation elem) {
+    public synchronized void delete(Reservation elem) {
         List<Reservation> reservationsWithoutElem = getAll().stream()
                 .filter(el -> !el.getIdReservation().equals(elem.getIdReservation()))
                 .toList();
-        System.out.println("GASIT::::::::::::::::::::::::::::::::: " + elem);
         writeToFile(reservationsWithoutElem);
     }
 
@@ -72,7 +69,7 @@ public class ReservationFileRepository implements ReservationRepository{
     }
 
     @Override
-    public Reservation findByID(Long id) {
+    public synchronized Reservation findByID(Long id) {
         return getAll().stream().
                 filter(el -> el.getIdReservation().equals(id)).
                 toList().
@@ -85,7 +82,7 @@ public class ReservationFileRepository implements ReservationRepository{
     }
 
     @Override
-    public Collection<Reservation> getAll() {
+    public synchronized Collection<Reservation> getAll() {
         Collection<Reservation> reservations = new ArrayList<>();
         try(BufferedReader br = new BufferedReader(new FileReader(filePath))){
             String line;
@@ -100,7 +97,6 @@ public class ReservationFileRepository implements ReservationRepository{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return reservations;
     }
 }

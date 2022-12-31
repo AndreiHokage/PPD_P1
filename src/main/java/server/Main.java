@@ -36,11 +36,10 @@ public class Main {
         TreatmentService treatmentService = new TreatmentService(treatmentRepository);
         PaymentService paymentService = new PaymentService(paymentRepository);
         ReservationService reservationService = new ReservationService(reservationRepository, treatmentRepository, paymentRepository);
-        SupraService supraService = new SupraService(reservationService, paymentService, locationService, treatmentService);
+        SupraService supraService = new SupraService(reservationService, paymentService, locationService, treatmentService,
+                currentDir + "logs.txt");
 
         ConcurrentServer concurrentServer = new ConcurrentServer(55555, supraService);
-//        supraService.makeReservation(new Reservation(null, "Andrei", "234",
-//                1L, 3L, LocalDate.now(), LocalTime.now()));
         concurrentServer.start();
 
     }

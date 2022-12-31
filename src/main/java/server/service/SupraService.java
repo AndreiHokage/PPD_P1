@@ -1,25 +1,64 @@
 package server.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import common.*;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.TransferQueue;
 
 public class SupraService implements IHealthCaresServices{
+
+    private class DTOInfo{
+        private Location location;
+        private Treatment treatment;
+        private Long maximumCapacity;
+        private Long actualCapacity;
+        private LocalTime start;
+        private LocalTime end;
+
+        public DTOInfo(Location location, Treatment treatment, Long maximumCapacity, Long actualCapacity, LocalTime start, LocalTime end) {
+            this.location = location;
+            this.treatment = treatment;
+            this.maximumCapacity = maximumCapacity;
+            this.actualCapacity = actualCapacity;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        public String toString() {
+            return "DTOInfo{" +
+                    "location=" + location +
+                    ", treatment=" + treatment +
+                    ", maximumCapacity=" + maximumCapacity +
+                    ", actualCapacity=" + actualCapacity +
+                    ", start=" + start +
+                    ", end=" + end +
+                    '}';
+        }
+    }
 
     private ReservationService reservationService;
     private PaymentService paymentService;
     private LocationService locationService;
     private TreatmentService treatmentService;
+    private String filePathLogs;
 
     public SupraService(ReservationService reservationService,
                         PaymentService paymentService,
                         LocationService locationService,
-                        TreatmentService treatmentService) {
+                        TreatmentService treatmentService,
+                        String filePathLogs) {
         this.reservationService = reservationService;
         this.paymentService = paymentService;
         this.locationService = locationService;
         this.treatmentService = treatmentService;
+        this.filePathLogs = filePathLogs;
     }
 
     @Override
@@ -49,17 +88,24 @@ public class SupraService implements IHealthCaresServices{
     }
 
     public void checkServerStatus() throws Exception{
+//        System.out.println("(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
         // ensure that the capacity for each treatment in each location wasn't exceeded
-        for(Location location: locationService.getAllLocations()){
-            for(Treatment treatment: treatmentService.getAllTreatments()){
+        List<Location> locations = new ArrayList<>(locationService.getAllLocations());
+        List<Treatment> treatments = new ArrayList<>(treatmentService.getAllTreatments());
+        List<Payment> payments = new ArrayList<>(paymentService.getALlPayments());
+        List<Reservation> reservations = new ArrayList<>(reservationService.getAllReservations());
+
+        List<DTOInfo> dtoInfos = new ArrayList<>();
+        for(Location location: locations){
+            for(Treatment treatment: treatments){
                 Integer duration = treatment.getDuration();
                 Integer capacity = treatment.getMaxCapacity().get(location.getIdLocation().intValue());
-                List<Reservation> reservations = reservationService.getAllReservations().stream()
+                List<Reservation> reservationsList = reservations.stream()
                         .filter(x -> x.getIdLocation().equals(location.getIdLocation()) &&
                                      x.getIdTreatment().equals(treatment.getIdTreatment()))
                         .toList();
 
-                List<Reservation> sortedList = reservations.stream()
+                List<Reservation> sortedList = reservationsList.stream()
                         .sorted((X, Y) -> {
                             if(X.getTimeTreatment().compareTo(Y.getTimeTreatment()) <= 0)
                                 return -1;
@@ -74,10 +120,11 @@ public class SupraService implements IHealthCaresServices{
                     LocalTime currentTime = element.getTimeTreatment();
                     setEndTimes.add(currentTime.plusMinutes(duration));
                     SortedSet<LocalTime> tailSet = setEndTimes.headSet(currentTime);
-                    for(LocalTime iop: tailSet)
-                        System.out.println(currentTime + "  " + iop);
                     count = count - tailSet.size();
                     tailSet.clear();
+
+                    dtoInfos.add(new DTOInfo(location, treatment, Long.valueOf(capacity), Long.valueOf(count),
+                            currentTime, currentTime.plusMinutes(duration)));
 
                     if(count > capacity.intValue())
                         throw new Exception("The capacity was exceeded!");
@@ -85,7 +132,6 @@ public class SupraService implements IHealthCaresServices{
             }
         }
 
-        List<Payment> payments = new ArrayList<>( paymentService.getALlPayments() );
         List<Payment> remainingPayments = new ArrayList<>();
         for(int i = 0; i < payments.size(); i++) {
             Boolean found = false;
@@ -102,5 +148,47 @@ public class SupraService implements IHealthCaresServices{
             }
         }
 
+        // total amount of money for each location
+        HashMap<Location, Double> sold_location = new HashMap<>();
+        for(Location location: locations) sold_location.put(location, 0.0);
+        for(Payment payment: remainingPayments){
+            Location corresponding_location = locationService.findByID(
+                    reservationService.findByID(payment.getIdReservation()).getIdLocation());
+            sold_location.put(corresponding_location,
+                    payment.getAmountPayed() + sold_location.get(corresponding_location));
+        }
+
+        // the list of all unpaid reservations
+        List<Long> unpaidReservations = new ArrayList<>();
+        for(Reservation reservation: reservations){
+            Boolean found = false;
+            for(Payment payment: remainingPayments){
+                if(payment.getIdReservation() == reservation.getIdReservation().intValue())
+                    found = true;
+            }
+            if(!found){
+                unpaidReservations.add(reservation.getIdReservation());
+            }
+        }
+
+
+        try(PrintWriter fileWriter = new PrintWriter(new FileWriter(filePathLogs, true))) {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            fileWriter.write(LocalTime.now().toString() + "\n");
+            for(Map.Entry<Location, Double> keyValue: sold_location.entrySet())
+                fileWriter.write(keyValue.getKey().getName() + ": " + keyValue.getValue().toString() + "\n");
+            fileWriter.write("The unpaid reservation's ids:");
+            for(Long elId: unpaidReservations)
+                fileWriter.write(elId + " ");
+            fileWriter.write("\n");
+            for(DTOInfo dtoInfo: dtoInfos)
+                fileWriter.write(dtoInfo + "\n");
+            fileWriter.write("---------------------------------------------------------------------------------------------------\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+//        System.out.println(")))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))");
     }
 }

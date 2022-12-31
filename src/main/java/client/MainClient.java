@@ -2,14 +2,20 @@ package client;
 
 public class MainClient {
     public static void main(String[] args) {
-        System.out.println("Hello");
+        Integer NO_CLIENTS = 10;
 
-        Services services = new Services("127.0.0.1", 55555);
+        Services[] servicesList = new Services[NO_CLIENTS];
+        Thread[] threads = new Thread[NO_CLIENTS];
+        for (int i = 0; i < NO_CLIENTS; i++) {
+            servicesList[i] = new Services("127.0.0.1", 55555);
+            threads[i] = new Thread(new ClientWorker(servicesList[i]));;
+            threads[i].start();
+        }
 
-        Thread thr = new Thread(new ClientWorker(services));
-        thr.start();
         try {
-            thr.join();
+            for (int i = 0; i < NO_CLIENTS; i++) {
+                threads[i].join();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

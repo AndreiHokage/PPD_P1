@@ -17,4 +17,8 @@ public class LocationService {
     public Collection<Location> getAllLocations(){
         return locationRepository.getAll();
     }
+
+    public Location findByID(Long ID){
+        return locationRepository.findByID(ID);
+    }
 }

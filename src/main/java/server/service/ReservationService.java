@@ -26,7 +26,7 @@ public class ReservationService {
         this.paymentRepository = paymentRepository;
     }
 
-    public DTOReservation makeReservation(Reservation reservation){
+    public synchronized DTOReservation makeReservation(Reservation reservation){
         Treatment treatment = treatmentRepository.findByID(reservation.getIdTreatment());
         Integer duration = treatment.getDuration();
         Integer capacity = treatment.getMaxCapacity().get(reservation.getIdLocation().intValue());
@@ -64,8 +64,6 @@ public class ReservationService {
             LocalTime currentTime = element.getTimeTreatment();
             setEndTimes.add(currentTime.plusMinutes(duration));
             SortedSet<LocalTime> tailSet = setEndTimes.headSet(currentTime);
-            for(LocalTime iop: tailSet)
-                System.out.println(currentTime + "  " + iop);
             count = count - tailSet.size();
             tailSet.clear();
 
@@ -86,5 +84,9 @@ public class ReservationService {
 
     public Collection<Reservation> getAllReservations(){
         return reservationRepository.getAll();
+    }
+
+    public Reservation findByID(Long ID){
+        return reservationRepository.findByID(ID);
     }
 }

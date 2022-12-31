@@ -26,6 +26,7 @@ public class ClientWorker extends Thread {
                 System.out.println("\nNEW RESERVATION\n");
 
                 Reservation reservation = createRandomReservation();
+                System.out.println(reservation);
                 DTOReservation response = services.makeReservation(reservation);
                 reservation = response.getReservation();
                 if (response.getWasAccepted()) {
