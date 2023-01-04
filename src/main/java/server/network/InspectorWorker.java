@@ -14,22 +14,37 @@ public class InspectorWorker implements Runnable{
         this.NO_WAIT_SECONDS = NO_WAIT_SECONDS;
     }
 
+    private void unlockIsCancelledLock(){
+        ConcurrentServer.isCancelled = true;
+        ConcurrentServer.isCancelledCondition.signalAll();
+        ConcurrentServer.isCancelledLock.unlock();
+    }
+
     @Override
     public void run() {
         while(true){
+
+            ConcurrentServer.isCancelledLock.lock();
+            while(ConcurrentServer.isCancelled == true){
+                try {
+                    ConcurrentServer.isCancelledCondition.await();
+                } catch (InterruptedException e) {
+                    System.out.println("Interrupted Exception during the waiting in InspectorWorker => Return");
+                    unlockIsCancelledLock();
+                    return;
+                }
+            }
+
             try {
-//                ConcurrentServer.reentrantLock.lock();
-//                while(!ConcurrentServer.canCheckSystem){
-//                    ConcurrentServer.checkSystemCondition.await();
-//                }
-
                 supraService.checkServerStatus();
+                unlockIsCancelledLock();
 
-//                ConcurrentServer.canCheckSystem = Boolean.FALSE;
-//                ConcurrentServer.checkSystemCondition.signalAll();
-//                ConcurrentServer.reentrantLock.unlock();
                 TimeUnit.SECONDS.sleep(NO_WAIT_SECONDS);
-            } catch (Exception e) {
+            }catch (InterruptedException e){
+                System.out.println("The checker thread was interrupted.");
+                break;
+            }
+            catch (Exception e) {
                 e.printStackTrace();
             }
         }

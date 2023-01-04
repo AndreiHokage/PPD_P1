@@ -8,7 +8,8 @@ public class MainClient {
         Thread[] threads = new Thread[NO_CLIENTS];
         for (int i = 0; i < NO_CLIENTS; i++) {
             servicesList[i] = new Services("127.0.0.1", 55555);
-            threads[i] = new Thread(new ClientWorker(servicesList[i]));;
+            threads[i] = new Thread(new ClientWorker(servicesList[i]));
+            servicesList[i].setParentThread(threads[i]);
             threads[i].start();
         }
 
@@ -19,24 +20,6 @@ public class MainClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
-//        List<Thread> threads = new ArrayList<>(List.of(
-//                new Thread(new ClientWorker(services)),
-//                new Thread(new ClientWorker(services)),
-//                new Thread(new ClientWorker(services)),
-//                new Thread(new ClientWorker(services)),
-//                new Thread(new ClientWorker(services))));
-//
-//        threads.forEach(Thread::start);
-//
-//        threads.forEach(thread -> {
-//            try {
-//                thread.join();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        });
 
     }
 }

@@ -1,10 +1,17 @@
 package server.network;
 
+import common.Location;
 import server.service.SupraService;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executor;
@@ -18,21 +25,20 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ConcurrentServer {
 
-    private static final Integer NO_CHECK_SECONDS = 5;
-    private static final Integer NO_END_SECONDS_SERVER = 30;
-    private static final Integer NO_THREADS_CLIENTS = 11;
-    private static final Integer NO_THREADS_REQUEST = 11;
+    private static final Integer NO_CHECK_SECONDS = 10;
+    private static final Integer NO_SECONDS_END_SERVER = 3 * 60;
+    private static final Integer NO_THREADS_REQUEST = 10;
 
     private Integer port;
     private SupraService supraService;
     private ServerSocket server = null;
-    public static final ExecutorService executor = Executors.newFixedThreadPool(NO_THREADS_CLIENTS);
+    public static final ExecutorService executor = Executors.newCachedThreadPool();
     public static final ExecutorService executorRequest = Executors.newFixedThreadPool(NO_THREADS_REQUEST);
-    public static Lock reentrantLock = new ReentrantLock();
-    public static Condition checkSystemCondition = reentrantLock.newCondition();
-    public static Boolean canCheckSystem = Boolean.TRUE;
+    private Boolean running = true;
 
-
+    public static Lock isCancelledLock = new ReentrantLock();
+    public static Condition isCancelledCondition = isCancelledLock.newCondition();
+    public static Boolean isCancelled = false;
 
     public ConcurrentServer(Integer port, SupraService supraService) {
         this.port = port;
@@ -40,23 +46,26 @@ public class ConcurrentServer {
 
         Timer timer = new Timer();
         TimeOutTask timeOutTask = new TimeOutTask(Thread.currentThread(), timer, this);
-        timer.schedule(timeOutTask, NO_END_SECONDS_SERVER * 1000);
+        timer.schedule(timeOutTask, NO_SECONDS_END_SERVER * 1000);
     }
 
     public void start(){
         try {
-            long startTime = System.currentTimeMillis(); // get the current time in milliseconds
 
             server = new ServerSocket(port);
             executor.execute(new InspectorWorker(supraService, NO_CHECK_SECONDS));
 
-            while(true){
+            while(running){
                 System.out.println("Waiting for clients ...");
-                Socket client = server.accept();
-                System.out.println("Client connected ...");
-                createWorker(client, supraService);
+                try {
+                    Socket client = server.accept();
+                    System.out.println("Client connected ...");
+                    createWorker(client, supraService);
+                } catch (SocketException e){
+                    break;
+                }
             }
-            //shutdownAndAwaitTermination(executor);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -67,16 +76,16 @@ public class ConcurrentServer {
         executor.execute(worker);
     }
 
-    void shutdownAndAwaitTermination(ExecutorService pool) {
+    void shutdownAndAwaitTermination(ExecutorService pool, String namePool) {
 
         pool.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!pool.awaitTermination(10, TimeUnit.SECONDS)) {
                 pool.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
-                    System.err.println("Pool did not terminate");
+                if (!pool.awaitTermination(10, TimeUnit.SECONDS))
+                    System.err.println("Pool " + namePool + " did not terminate");
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
@@ -84,5 +93,10 @@ public class ConcurrentServer {
             // Preserve interrupt status
             Thread.currentThread().interrupt();
         }
+    }
+
+    public void closeServer() throws IOException {
+        server.close();
+        running = false;
     }
 }

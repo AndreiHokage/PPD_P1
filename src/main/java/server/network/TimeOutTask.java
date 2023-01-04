@@ -1,5 +1,6 @@
 package server.network;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,10 +18,15 @@ class TimeOutTask extends TimerTask {
     @Override
     public void run() {
         if (thread != null && thread.isAlive()) {
-            concurrentServer.shutdownAndAwaitTermination(ConcurrentServer.executorRequest);
-            concurrentServer.shutdownAndAwaitTermination(ConcurrentServer.executor);
-            thread.interrupt();
+            concurrentServer.shutdownAndAwaitTermination(ConcurrentServer.executorRequest, "Requests_Pool");
+            concurrentServer.shutdownAndAwaitTermination(ConcurrentServer.executor, "Clients_Pool");
+            try {
+                concurrentServer.closeServer();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             timer.cancel();
+            System.out.println("FINISH SERVER");
         }
     }
 }

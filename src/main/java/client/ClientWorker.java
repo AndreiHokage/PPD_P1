@@ -50,11 +50,8 @@ public class ClientWorker extends Thread {
                 TimeUnit.SECONDS.sleep(2);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
-
-
-        services.closeConnection();
     }
 
     private Payment createPayment(Reservation reservation) throws Exception {

@@ -4,6 +4,7 @@ import common.DTOReservation;
 import common.Payment;
 import common.Reservation;
 import common.Treatment;
+import server.network.ConcurrentServer;
 import server.repository.Repository;
 
 import java.time.LocalDate;
@@ -76,10 +77,27 @@ public class ReservationService {
     }
 
     public void cancelReservation(Reservation reservation){
+        ConcurrentServer.isCancelledLock.lock();
+        while(ConcurrentServer.isCancelled == false){
+            try {
+                ConcurrentServer.isCancelledCondition.await();
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted Exception during the waiting in cancelReservation method => Return");
+                unlockIsCancelledLock();
+                return;
+            }
+        }
         Treatment treatment = treatmentRepository.findByID(reservation.getIdTreatment());
         reservationRepository.delete(reservation);
         paymentRepository.add(new Payment(null, LocalDate.now(), reservation.getCnp(),
                 -treatment.getPrice(), reservation.getIdReservation()));
+        unlockIsCancelledLock();
+    }
+
+    private void unlockIsCancelledLock(){
+        ConcurrentServer.isCancelled = false;
+        ConcurrentServer.isCancelledCondition.signalAll();
+        ConcurrentServer.isCancelledLock.unlock();
     }
 
     public Collection<Reservation> getAllReservations(){

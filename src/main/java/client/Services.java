@@ -23,6 +23,7 @@ public class Services implements IHealthCaresServices {
     private ObjectInputStream input;
     private ObjectOutputStream output;
     private Socket connection;
+    private Thread parentThread;
 
     private BlockingQueue<Response> qresponses;
     private volatile boolean finished;
@@ -33,6 +34,10 @@ public class Services implements IHealthCaresServices {
         qresponses = new LinkedBlockingQueue<Response>();
 
         initializeConnection();
+    }
+
+    public void setParentThread(Thread thread){
+        this.parentThread = thread;
     }
 
     @Override
@@ -112,11 +117,11 @@ public class Services implements IHealthCaresServices {
         return result;
     }
 
-    public void workDone() throws Exception {
-        Request request = new Request.Builder().type(RequestType.STOP).build();
-        sendRequest(request);
-        System.out.println("WORK DONE: Connection closed");
-    }
+//    public void workDone() throws Exception {
+//        Request request = new Request.Builder().type(RequestType.STOP).build();
+//        sendRequest(request);
+//        System.out.println("WORK DONE: Connection closed");
+//    }
 
 
     private void initializeConnection() {
@@ -146,7 +151,7 @@ public class Services implements IHealthCaresServices {
         try {
             response = qresponses.take();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            System.out.println("The parent thread of " + Thread.currentThread().getName() +" was interrupted.");
         }
         return response;
     }
@@ -157,17 +162,18 @@ public class Services implements IHealthCaresServices {
     }
 
     public void closeConnection() {
-        try {
-            workDone();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+//        try {
+//            workDone();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        System.out.println("FINISHEFINISHED");
         finished = true;
         try {
             input.close();
             output.close();
             connection.close();
+            parentThread.interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -180,15 +186,19 @@ public class Services implements IHealthCaresServices {
                 try {
                     Object response = input.readObject();
                     System.out.println("response received " + response);
-                    try {
-                        qresponses.put((Response) response);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if( ((Response)response).type().equals(ResponseType.A_STOP) ){
+                        closeConnection();
+                    }else {
+                        try {
+                            qresponses.put((Response) response);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 } catch (IOException e) {
-                    //System.out.println("Reading error " + e);
+                        //System.out.println("Reading error " + e);
                 } catch (ClassNotFoundException e) {
-                    //System.out.println("Reading error " + e);
+                        //System.out.println("Reading error " + e);
                 }
             }
         }

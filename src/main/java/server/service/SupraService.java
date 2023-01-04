@@ -20,14 +20,17 @@ public class SupraService implements IHealthCaresServices{
         private Long actualCapacity;
         private LocalTime start;
         private LocalTime end;
+        private Long reservationsId;
 
-        public DTOInfo(Location location, Treatment treatment, Long maximumCapacity, Long actualCapacity, LocalTime start, LocalTime end) {
+        public DTOInfo(Location location, Treatment treatment, Long maximumCapacity,
+                       Long actualCapacity, LocalTime start, LocalTime end, Long reservationsId) {
             this.location = location;
             this.treatment = treatment;
             this.maximumCapacity = maximumCapacity;
             this.actualCapacity = actualCapacity;
             this.start = start;
             this.end = end;
+            this.reservationsId = reservationsId;
         }
 
         @Override
@@ -39,6 +42,7 @@ public class SupraService implements IHealthCaresServices{
                     ", actualCapacity=" + actualCapacity +
                     ", start=" + start +
                     ", end=" + end +
+                    ", reservationsId=" + reservationsId +
                     '}';
         }
     }
@@ -124,7 +128,7 @@ public class SupraService implements IHealthCaresServices{
                     tailSet.clear();
 
                     dtoInfos.add(new DTOInfo(location, treatment, Long.valueOf(capacity), Long.valueOf(count),
-                            currentTime, currentTime.plusMinutes(duration)));
+                            currentTime, currentTime.plusMinutes(duration), element.getIdReservation()));
 
                     if(count > capacity.intValue())
                         throw new Exception("The capacity was exceeded!");

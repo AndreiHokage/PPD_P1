@@ -51,7 +51,12 @@ public class Worker implements Runnable{
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                System.out.println(Thread.currentThread().getName() + " Shutdown procedure was initiated.");
+                try {
+                    sendResponse(handleSTOP());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
 
             try{
@@ -87,7 +92,7 @@ public class Worker implements Runnable{
         }
     }
 
-    private Future<Response> handleRequest(Request request){
+    private Future<Response> handleRequest(Request request) throws IOException {
         Future<Response> response = null;
         String handlerName = "handle" + request.type();
         System.out.println("HandlerName " + handlerName);
@@ -98,6 +103,9 @@ public class Worker implements Runnable{
             System.out.println("Method " + handlerName + " invoked");
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
+        } catch(RejectedExecutionException e){ // Exception thrown by an Executor when a task cannot be accepted for execution
+            System.out.println(Thread.currentThread().getName() + " Shutdown procedure was initiated.");
+            sendResponse(handleSTOP());
         }
 
         return response;
@@ -148,8 +156,8 @@ public class Worker implements Runnable{
         return new Response.Builder().type(ResponseType.A_GET_ALL_LOCATIONS).data(locations).build();
     }
 
-    private Response handleSTOP(Request request){
+    private Response handleSTOP(){
         connected = false;
-        return new Response.Builder().type(ResponseType.OK).build();
+        return new Response.Builder().type(ResponseType.A_STOP).build();
     }
 }
