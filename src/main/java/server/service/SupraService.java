@@ -130,8 +130,9 @@ public class SupraService implements IHealthCaresServices{
                     dtoInfos.add(new DTOInfo(location, treatment, Long.valueOf(capacity), Long.valueOf(count),
                             currentTime, currentTime.plusMinutes(duration), element.getIdReservation()));
 
-                    if(count > capacity.intValue())
+                    if(count > capacity.intValue()) {
                         throw new Exception("The capacity was exceeded!");
+                    }
                 }
             }
         }

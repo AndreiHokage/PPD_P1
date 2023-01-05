@@ -26,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ConcurrentServer {
 
     private static final Integer NO_CHECK_SECONDS = 10;
-    private static final Integer NO_SECONDS_END_SERVER = 3 * 60;
+    private static final Integer NO_SECONDS_END_SERVER = 1 * 60;
     private static final Integer NO_THREADS_REQUEST = 10;
 
     private Integer port;

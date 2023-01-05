@@ -68,7 +68,7 @@ public class ReservationService {
             count = count - tailSet.size();
             tailSet.clear();
 
-            if(count > capacity.intValue())
+            if(count >= capacity.intValue())
                 return new DTOReservation(false, reservation);
         }
 
