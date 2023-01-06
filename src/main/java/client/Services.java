@@ -80,8 +80,6 @@ public class Services implements IHealthCaresServices {
             closeConnection();
             throw new Exception("Something went wrong");
         }
-
-        System.out.println(response.data());
     }
 
     @Override
