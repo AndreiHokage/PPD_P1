@@ -93,7 +93,7 @@ public class Services implements IHealthCaresServices {
             throw new Exception("Something went wrong");
         }
 
-        System.out.println(response.data());
+        // System.out.println(response.data());
         Collection<Treatment> result = (Collection<Treatment>) response.data();
         return result;
     }
@@ -102,15 +102,15 @@ public class Services implements IHealthCaresServices {
     public Collection<Location> getAllLocations() throws Exception {
         Request request = new Request.Builder().type(RequestType.GET_ALL_LOCATIONS).build();
         sendRequest(request);
-        System.out.println("Send request");
+        // System.out.println("Send request");
         Response response = readResponse();
-        System.out.println("Read response");
+        // System.out.println("Read response");
         if (response.type() != ResponseType.A_GET_ALL_LOCATIONS) {
             closeConnection();
             throw new Exception("Something went wrong");
         }
 
-        System.out.println(response.data());
+        // System.out.println(response.data());
         Collection<Location> result = (Collection<Location>) response.data();
         return result;
     }
