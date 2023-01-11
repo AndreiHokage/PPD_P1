@@ -39,7 +39,7 @@ public class Main {
         SupraService supraService = new SupraService(reservationService, paymentService, locationService, treatmentService,
                 currentDir + "logs.txt");
 
-        ConcurrentServer concurrentServer = new ConcurrentServer(55555, supraService);
+        ConcurrentServer concurrentServer = new ConcurrentServer(60234, supraService);
         concurrentServer.start();
 
     }
